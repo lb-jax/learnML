@@ -205,7 +205,7 @@ def get_dataloader_workers():
     Defined in :numref:`sec_fashion_mnist`"""
     return 4
 
-def load_data_fashion_mnist(batch_size, resize=None):
+def load_data_fashion_mnist(root="../data",batch_size, resize=None):
     """Download the Fashion-MNIST dataset and then load it into memory.
 
     Defined in :numref:`sec_fashion_mnist`"""
@@ -214,9 +214,9 @@ def load_data_fashion_mnist(batch_size, resize=None):
         trans.insert(0, transforms.Resize(resize))
     trans = transforms.Compose(trans)
     mnist_train = torchvision.datasets.FashionMNIST(
-        root="../data", train=True, transform=trans, download=True)
+        root, train=True, transform=trans, download=True)
     mnist_test = torchvision.datasets.FashionMNIST(
-        root="../data", train=False, transform=trans, download=True)
+        root, train=False, transform=trans, download=True)
     return (data.DataLoader(mnist_train, batch_size, shuffle=True,
                             num_workers=get_dataloader_workers()),
             data.DataLoader(mnist_test, batch_size, shuffle=False,
@@ -484,9 +484,11 @@ def train_ch6(net, train_iter, test_iter, num_epochs, lr, device):
     net.to(device)
     optimizer = torch.optim.SGD(net.parameters(), lr=lr)
     loss = nn.CrossEntropyLoss()
-    animator = d2l.Animator(xlabel='epoch', xlim=[1, num_epochs],
-                            legend=['train loss', 'train acc', 'test acc'])
+
+    # animator = d2l.Animator(xlabel='epoch', xlim=[1, num_epochs],
+    #                         legend=['train loss', 'train acc', 'test acc'])
     timer, num_batches = d2l.Timer(), len(train_iter)
+
     for epoch in range(num_epochs):
         # Sum of training loss, sum of training accuracy, no. of examples
         metric = d2l.Accumulator(3)
@@ -505,10 +507,11 @@ def train_ch6(net, train_iter, test_iter, num_epochs, lr, device):
             train_l = metric[0] / metric[2]
             train_acc = metric[1] / metric[2]
             if (i + 1) % (num_batches // 5) == 0 or i == num_batches - 1:
-                animator.add(epoch + (i + 1) / num_batches,
-                             (train_l, train_acc, None))
+                print("train_l:",train_l,"train_acc:",train_acc)
+                # animator.add(epoch + (i + 1) / num_batches,
+                #              (train_l, train_acc, None))
         test_acc = evaluate_accuracy_gpu(net, test_iter)
-        animator.add(epoch + 1, (None, None, test_acc))
+        # animator.add(epoch + 1, (None, None, test_acc))
     print(f'loss {train_l:.3f}, train acc {train_acc:.3f}, '
           f'test acc {test_acc:.3f}')
     print(f'{metric[2] * num_epochs / timer.sum():.1f} examples/sec '

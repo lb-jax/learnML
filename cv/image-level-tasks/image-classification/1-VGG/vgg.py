@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from common import torch as jax
+from common import jax as jax
+# from d2l import torch as jax
 
 
 def vgg_block(num_convs, in_channels, out_channels):
@@ -42,5 +43,6 @@ def vgg(conv_arch):
 net = vgg(conv_arch)
 
 lr, num_epochs, batch_size = 0.05, 10, 128
-train_iter, test_iter = jax.load_data_fashion_mnist(batch_size, resize=224)
+root = "/data/coding/data/"
+train_iter, test_iter = jax.load_data_fashion_mnist(root,batch_size, resize=224)
 jax.train_ch6(net, train_iter, test_iter, num_epochs, lr, jax.try_gpu())
