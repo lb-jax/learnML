@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from common import torch as jax
+from common import BaseFunc as jax
 
 
 
@@ -45,15 +45,28 @@ def resnet_block(input_channels, num_channels, num_residuals,
             blk.append(Residual(num_channels, num_channels))
     return blk
 
-b2 = nn.Sequential(*resnet_block(64, 64, 2, first_block=True))
-b3 = nn.Sequential(*resnet_block(64, 128, 2))
-b4 = nn.Sequential(*resnet_block(128, 256, 2))
-b5 = nn.Sequential(*resnet_block(256, 512, 2))
+b2 = nn.Sequential(*resnet_block(64, 64, 3, first_block=True))
+b3 = nn.Sequential(*resnet_block(64, 128, 4))
+b4 = nn.Sequential(*resnet_block(128, 256, 6))
+b5 = nn.Sequential(*resnet_block(256, 512, 3))
 
 net = nn.Sequential(b1, b2, b3, b4, b5,
                     nn.AdaptiveAvgPool2d((1,1)),
                     nn.Flatten(), nn.Linear(512, 10))
 
 lr, num_epochs, batch_size = 0.05, 10, 256
-train_iter, test_iter = jax.load_data_fashion_mnist(batch_size, resize=96)
+train_iter, test_iter = jax.load_data_fashion_mnist(batch_size, resize=224)
 jax.train_ch6(net, train_iter, test_iter, num_epochs, lr, jax.try_gpu())
+
+output_path = "/data/coding/learnML/cv/image-level-tasks/image-classification/3-ResNet/model/ResNet_model.onnx"
+net.cpu()
+# 导出ONNX
+jax.export_to_onnx(
+    net,
+    output_path,
+    input_shape=(1, 1,96, 96)  # VGG的标准输入尺寸
+)
+'''
+loss 0.033, train acc 0.989, test acc 0.830
+740.5 examples/sec on cuda:0
+'''

@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from common import torch as jax
+from common import BaseFunc as jax
 
 
 def conv_block(input_channels, num_channels):
@@ -61,3 +61,18 @@ net = nn.Sequential(
 lr, num_epochs, batch_size = 0.1, 10, 256
 train_iter, test_iter = jax.load_data_fashion_mnist(batch_size, resize=96)
 jax.train_ch6(net, train_iter, test_iter, num_epochs, lr, jax.try_gpu())
+
+output_path = "/data/coding/learnML/cv/image-level-tasks/image-classification/4-Densenet/model/Densenet_model.onnx"
+
+net.cpu()
+# 导出ONNX
+jax.export_to_onnx(
+    net,
+    output_path,
+    input_shape=(1, 1,96, 96)  # VGG的标准输入尺寸
+)
+'''
+loss 0.140, train acc 0.948, test acc 0.885
+5468.2 examples/sec on cuda:0
+
+'''

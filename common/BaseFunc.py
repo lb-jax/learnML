@@ -9,6 +9,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils import data
 from torchvision import transforms
+from torch.onnx import export
 
 nn_Module = nn.Module
 
@@ -205,7 +206,7 @@ def get_dataloader_workers():
     Defined in :numref:`sec_fashion_mnist`"""
     return 4
 
-def load_data_fashion_mnist(root="../data",batch_size, resize=None):
+def load_data_fashion_mnist(batch_size, root="../data",resize=None):
     """Download the Fashion-MNIST dataset and then load it into memory.
 
     Defined in :numref:`sec_fashion_mnist`"""
@@ -491,6 +492,8 @@ def train_ch6(net, train_iter, test_iter, num_epochs, lr, device):
 
     for epoch in range(num_epochs):
         # Sum of training loss, sum of training accuracy, no. of examples
+        train_l = 0
+        train_acc = 0
         metric = d2l.Accumulator(3)
         net.train()
         for i, (X, y) in enumerate(train_iter):
@@ -506,16 +509,55 @@ def train_ch6(net, train_iter, test_iter, num_epochs, lr, device):
             timer.stop()
             train_l = metric[0] / metric[2]
             train_acc = metric[1] / metric[2]
-            if (i + 1) % (num_batches // 5) == 0 or i == num_batches - 1:
-                print("train_l:",train_l,"train_acc:",train_acc)
+            # if (i + 1) % (num_batches // 5) == 0 or i == num_batches - 1:
+                # print("train_l:",train_l,"train_acc:",train_acc)
                 # animator.add(epoch + (i + 1) / num_batches,
                 #              (train_l, train_acc, None))
         test_acc = evaluate_accuracy_gpu(net, test_iter)
+        print("train_l:",train_l,"train_acc:",train_acc,"test_acc:",test_acc)
         # animator.add(epoch + 1, (None, None, test_acc))
     print(f'loss {train_l:.3f}, train acc {train_acc:.3f}, '
           f'test acc {test_acc:.3f}')
     print(f'{metric[2] * num_epochs / timer.sum():.1f} examples/sec '
           f'on {str(device)}')
+
+
+# 导出函数
+def export_to_onnx(model, output_path, input_shape=(1, 1,224, 224)):
+    """
+    导出模型为 ONNX 格式
+    参数:
+        model: 训练好的模型
+        output_path: ONNX文件保存路径
+        input_shape: 模型输入维度 (batch, channels, height, width)
+    """
+    model.eval()
+
+    # 创建虚拟输入（匹配输入形状）
+    dummy_input = torch.randn(input_shape, requires_grad=False)
+    
+    # 设置动态维度（可选，便于适配不同批次大小）
+    dynamic_axes = {
+        "input": {0: "batch_size"},   # 第0维度（批次）设为动态
+        "output": {0: "batch_size"}    # 输出批次维度同样动态
+    }
+    
+    # 导出为 ONNX
+    export(
+        model,                   # 要导出的模型
+        dummy_input,             # 虚拟输入
+        output_path,             # 输出文件路径
+        export_params=True,      # 包含模型权重
+        verbose=True,            # 打印导出信息
+        input_names=["input"],   # 输入节点名称
+        output_names=["output"], # 输出节点名称
+        dynamic_axes=dynamic_axes, # 动态维度设置
+        opset_version=13         # ONNX 操作集版本（推荐 13+）
+    )
+    
+    print(f"✅ 模型已成功导出为: {output_path}")
+
+
 
 class Residual(nn.Module):
     """The Residual block of ResNet."""
