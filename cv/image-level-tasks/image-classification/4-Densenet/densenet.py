@@ -32,10 +32,12 @@ def transition_block(input_channels, num_channels):
         nn.Conv2d(input_channels, num_channels, kernel_size=1),
         nn.AvgPool2d(kernel_size=2, stride=2))
 
+
 b1 = nn.Sequential(
     nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3),
     nn.BatchNorm2d(64), nn.ReLU(),
     nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+
 
 # num_channels为当前的通道数
 num_channels, growth_rate = 64, 32
