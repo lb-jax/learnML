@@ -63,7 +63,7 @@ b5 = nn.Sequential(Inception(832, 256, (160, 320), (32, 128), 128),
 
 net = nn.Sequential(b1, b2, b3, b4, b5, nn.Linear(1024, 10))
 
-lr, num_epochs, batch_size = 0.1, 10, 128
+lr, num_epochs, batch_size = 0.1, 1, 128
 train_iter, test_iter = jax.load_data_fashion_mnist(batch_size, resize=96)
 jax.train_ch6(net, train_iter, test_iter, num_epochs, lr, jax.try_gpu())
 

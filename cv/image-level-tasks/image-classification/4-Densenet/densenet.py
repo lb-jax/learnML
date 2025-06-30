@@ -58,7 +58,7 @@ net = nn.Sequential(
     nn.Flatten(),
     nn.Linear(num_channels, 10))
 
-lr, num_epochs, batch_size = 0.1, 10, 256
+lr, num_epochs, batch_size = 0.1, 1, 256
 train_iter, test_iter = jax.load_data_fashion_mnist(batch_size, resize=96)
 jax.train_ch6(net, train_iter, test_iter, num_epochs, lr, jax.try_gpu())
 
