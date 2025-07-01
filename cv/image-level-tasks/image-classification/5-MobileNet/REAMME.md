@@ -72,6 +72,8 @@
 
 ### MobileNetV2：倒残差与线性瓶颈
 
+![](../../img/MobileNetV2.png)
+
 - 倒残差结构（Inverted Residuals）：先通过 1×1 卷积扩张通道（扩展因子t=6），再深度卷积，最后 1×1 卷积压缩通道。
 - 设计逻辑：在高维空间进行非线性变换ReLU6），避免信息损失。
 - 线性瓶颈（Linear Bottleneck）：压缩层的 1×1 卷积不使用 ReLU，保留完整特征信息。
